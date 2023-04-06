@@ -18,6 +18,7 @@ def plot_eggholder_function(f):
     XX, YY = np.meshgrid(x_ax, y_ax)
 
     ZZ = np.zeros(XX.shape)
+    print(ZZ.shape)
     ZZ = f([XX, YY])
 
     ax.plot_surface(XX, YY, ZZ, cmap='jet')
@@ -39,22 +40,39 @@ def gradient_descent(f, df, x, learning_rate, max_iter):
     """
 
     E_list = np.zeros(max_iter)
-    # Implement the gradient descent algorithm
-    # E_list should be appended in each iteration, with the current value of the cost
-    
+
+    for i in range(max_iter):
+        x = x - learning_rate * df(x)
+        E_list[i] = f(x)
+
     return x, E_list
 
 
 def eggholder(x):
     # Implement the cost function specified in the HW1 sheet
-    z = x[0] + x[1]  # TODO: change me
+    z = - (x[1] + 47) * np.sin(np.sqrt(abs(x[0] / 2 + (x[1] + 47)))) - x[0] * np.sin(np.sqrt(abs(x[0] - (x[1] + 47))))
+    #z = x[0] + x[1]  # TODO: change me
+
     return z
 
 
-def gradient_eggholder(x):
+def gradient_eggholder(f):
+    x = f[0]
+    y = f[1]
     # Implement gradients of the Eggholder function w.r.t. x and y
-    grad_x = 0  # TODO: change me 
-    grad_y = 0  # TODO: change me
+    common_term = abs(47 + x / 2 + y) ** (3 / 2)
+    x_first = x * (-47 + x - y) * np.cos(np.sqrt(abs(47 + x - y))) / (2 * common_term)
+    x_second = (47 + y) * np.cos(np.sqrt(abs(47 + x / 2 + y))) / (4 * common_term)
+    x_third = np.sin(np.sqrt(47 - x + y))
+
+    grad_x = x_first - x_second - x_third
+
+    common_term = abs(-47 + x - y) ** (3 / 2)
+    y_first = x * (-47 + x - y) * np.cos(np.sqrt(abs(-47 + x - y))) / (2 * common_term)
+    y_second = (47 + y) * np.cos(np.sqrt(abs(47 + x / 2 + y))) / (2 * abs(47 + x / 2 + y) ** (3 / 2))
+    y_third = np.sin(np.sqrt(abs(47 - x / 2 + y)))
+
+    grad_y = y_first - y_second - y_third
                                       
     return np.array([grad_x, grad_y])
 
