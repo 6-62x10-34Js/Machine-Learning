@@ -63,7 +63,7 @@ def gradient_eggholder(f):
     common_term = abs(47 + x / 2 + y) ** (3 / 2)
     x_first = x * (-47 + x - y) * np.cos(np.sqrt(abs(47 + x - y))) / (2 * common_term)
     x_second = (47 + y) * np.cos(np.sqrt(abs(47 + x / 2 + y))) / (4 * common_term)
-    x_third = np.sin(np.sqrt(47 - x + y))
+    x_third = np.sin(np.sqrt(abs(47 - x + y)))
 
     grad_x = x_first - x_second - x_third
 

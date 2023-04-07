@@ -6,6 +6,7 @@ from matplotlib.colors import ListedColormap
 from gradient_descent import eggholder, gradient_eggholder, gradient_descent, plot_eggholder_function
 from lin_reg_memristors import test_fit_zero_intercept_lin_model, test_fit_lin_model_with_intercept, \
     fit_zero_intercept_lin_model, fit_lin_model_with_intercept, predict_fault_type
+import timeit
 
 cm_blue_orange = ListedColormap(['blue', 'orange'])
 
@@ -59,7 +60,7 @@ for i in range(n_memristor):
     ax.spines['top'].set_visible(False)
     # plt.show()
     plt.close()  # Comment/Uncomment
-plt.savefig(f'plots/model_1_memristor_collection_YES_centered.jpg', dpi=120)
+#plt.savefig(f'plots/model_1_memristor_collection_YES_centered.jpg', dpi=120)
 # print('Fault Prediction List')
 # print(zero_prediction)
 
@@ -191,26 +192,35 @@ def task_2():
 
 def task_3():
     print('\n---- Task 3 ----')
+
     # Plot the function, to see how it looks like
     plot_eggholder_function(eggholder)
 
 
-    # Done-TODO: choose a 2D random point from randint (-512, 512)
+    # Done: choose a 2D random point from randint (-512, 512)
     x0 = np.array([random.randint(-512, 512), random.randint(-512, 512)])
+    #x0 = np.array([-206, 7]) interesting behaviour CHAOTIC
     print(f'Starting point: x={x0}')
 
-
     # Call the function gradient_descent. Choose max_iter, learning_rate.
-    x, E_list = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate=0.1, max_iter=10000)
+    learning_rates = np.array([0.01, 0.005, 0.001])
+    max_iters = np.array([10000])
 
-    print(f'Minimum found: f({x}) = {eggholder(x)}')
+    for learning_rate in learning_rates:
+        for max_iter in max_iters:
+            start = timeit.timeit()
+            x, E_list = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
+            end = timeit.timeit()
+            print(f'lr={learning_rate}, iters={max_iter}, time={end - start}')
+            print(f'Minimum found for {learning_rate}: f({x}) = {eggholder(x)}')
+            plt.plot(E_list, label=f"lr={learning_rate}, iters={max_iter}")
 
-    # TODO Make a plot of the cost over iteration. Do not forget to label the plot (xlabel, ylabel, title).
-    plt.plot(E_list)
     plt.xlabel('Iteration')
     plt.ylabel('Cost')
     plt.autoscale(axis='y')
+    plt.legend()
     plt.title('Cost over Iteration')
+    plt.savefig(f'plots/Task3/costOverIteration_{max_iters}_{learning_rates}.jpg', dpi=120)
     plt.show()
 
     x_min = np.array([512, 404.2319])
