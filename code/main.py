@@ -196,13 +196,13 @@ def task_3():
 
     # Done: choose a 2D random point from randint (-512, 512)
     x0 = np.array([random.randint(-512, 512), random.randint(-512, 512)])
-    x0 = np.array([1, 2])
+    #x0 = np.array([-401, 136])
     print(f'Starting point: x={x0[0]}')
     print(f'Starting point: y={x0[1]}')
 
     # Call the function gradient_descent. Choose max_iter, learning_rate.
-    learning_rates = np.array([0.01])
-    max_iter = 5000
+    learning_rates = np.array([0.005])
+    max_iter = 10000
 
     # i thnínk that the gradient function is wrongly implemented in the plot function
 
