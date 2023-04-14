@@ -3,69 +3,66 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
-from gradient_descent import eggholder, gradient_eggholder, gradient_descent, plot_eggholder_function
+from gradient_descent import eggholder, gradient_eggholder, gradient_descent, plot_eggholder_function, \
+    plot_contour_w_gradient
 from lin_reg_memristors import test_fit_zero_intercept_lin_model, test_fit_lin_model_with_intercept, \
     fit_zero_intercept_lin_model, fit_lin_model_with_intercept, predict_fault_type
 import timeit
 
 cm_blue_orange = ListedColormap(['blue', 'orange'])
 
-print('---- Task 1.1 ----')
-test_fit_zero_intercept_lin_model()
-test_fit_lin_model_with_intercept()
-
-# Load the data from 'data/memristor_measurements.npy'
-data = np.load('data/memristor_measurements.npy')
-
-n_memristor = data.shape[0]
-
-### --- Use Model 1 (zero-intercept lin. model, that is, fit the model using fit_zero_intercept_lin_model)
-estimated_theta_per_memristor = np.zeros(n_memristor)
-fig, axs = plt.subplots(nrows=2, ncols=4, figsize=(12, 8))
-fig.subplots_adjust(hspace=0.5, wspace=0.4)
-plt.title('Task 1.1')
-
-zero_prediction = []
-for i in range(n_memristor):
-    # Implement an approprate function call
-    x = data[i, :, 0]
-    y = data[i, :, 1]
-    print('----------------------------')
-    print(x)
-    print(y)
-    print('----------------------------')
-
-    theta = fit_zero_intercept_lin_model(x, y)
-    estimated_theta_per_memristor[i] = theta
-    prediction = predict_fault_type(theta)
-    # print(f'{prediction} wilde SHAPE')
-    zero_prediction.append(prediction)
-
-    # Visualize the data and the best fit for each memristor
-    row_idx = i // 4
-    col_idx = i % 4
-    ax = axs[row_idx, col_idx]
-    plt.figure()
-    ax.plot(x, y, 'ko')
-    x_line = np.array([np.min(x), np.max(x)])
-    y_line = theta * x_line
-    ax.set_xlabel('Delta_R_ideal')  # Expected
-    ax.set_ylabel('Delta_R')  # Achieved
-    ax.set_title(f'Memristor {i + 1}' "\n" f'{prediction}')
-    ax.plot(x_line, y_line, label=f'Delta_R = {theta:.2f} * Delta_R_ideal')
-    ax.plot(x_line, y_line, label=f'Delta_R = {theta:.2f} * Delta_R_ideal')
-    plt.legend()
-    ax = plt.gca()
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    # plt.show()
-    plt.close()  # Comment/Uncomment
-#plt.savefig(f'plots/model_1_memristor_collection_YES_centered.jpg', dpi=120)
-# print('Fault Prediction List')
-# print(zero_prediction)
-
-
 def task_1():
+    print('---- Task 1.1 ----')
+    test_fit_zero_intercept_lin_model()
+    test_fit_lin_model_with_intercept()
+
+    # Load the data from 'data/memristor_measurements.npy'
+    data = np.load('data/memristor_measurements.npy')
+
+    n_memristor = data.shape[0]
+
+    ### --- Use Model 1 (zero-intercept lin. model, that is, fit the model using fit_zero_intercept_lin_model)
+    estimated_theta_per_memristor = np.zeros(n_memristor)
+    fig, axs = plt.subplots(nrows=2, ncols=4, figsize=(12, 8))
+    fig.subplots_adjust(hspace=0.5, wspace=0.4)
+    plt.title('Task 1.1')
+
+    zero_prediction = []
+    for i in range(n_memristor):
+        # Implement an approprate function call
+        x = data[i, :, 0]
+        y = data[i, :, 1]
+
+        theta = fit_zero_intercept_lin_model(x, y)
+        estimated_theta_per_memristor[i] = theta
+        prediction = predict_fault_type(theta)
+        # print(f'{prediction} wilde SHAPE')
+        zero_prediction.append(prediction)
+
+        # Visualize the data and the best fit for each memristor
+        row_idx = i // 4
+        col_idx = i % 4
+        ax_mem = axs[row_idx, col_idx]
+        plt.figure()
+        ax_mem.plot(x, y, 'ko')
+        x_line = np.array([np.min(x), np.max(x)])
+        y_line = theta * x_line
+        ax_mem.set_xlabel('Delta_R_ideal')  # Expected
+        ax_mem.set_ylabel('Delta_R')  # Achieved
+        ax_mem.set_title(f'Memristor {i + 1}' "\n" f'{prediction}')
+        ax_mem.plot(x_line, y_line, label=f'Delta_R = {theta:.2f} * Delta_R_ideal')
+        ax_mem.plot(x_line, y_line, label=f'Delta_R = {theta:.2f} * Delta_R_ideal')
+        ax_mem.legend()
+        ax_mem = plt.gca()
+        ax_mem.spines['right'].set_visible(False)
+        ax_mem.spines['top'].set_visible(False)
+        # plt.show()
+        plt.close()  # Comment/Uncomment
+
+    # plt.savefig(f'plots/model_1_memristor_collection_YES_centered.jpg', dpi=120)
+    # print('Fault Prediction List')
+    # print(zero_prediction)
+
     print('\nModel 1 (zero-intercept linear model).')
     print(f'Estimated theta per memristor: {estimated_theta_per_memristor}')
 
@@ -117,6 +114,7 @@ def task_1():
 
     print(estimated_params_per_memristor.shape)
     # for i in range(len(estimated_theta_per_memristor))
+    plt.show()
 
     plt.savefig(f'plots/model_2_memristor_collection_standart.jpg', dpi=120)
 
@@ -194,34 +192,31 @@ def task_3():
     print('\n---- Task 3 ----')
 
     # Plot the function, to see how it looks like
-    plot_eggholder_function(eggholder)
-
+    # plot_eggholder_function(eggholder)
 
     # Done: choose a 2D random point from randint (-512, 512)
     x0 = np.array([random.randint(-512, 512), random.randint(-512, 512)])
-    #x0 = np.array([-206, 7]) interesting behaviour CHAOTIC
-    print(f'Starting point: x={x0}')
+    x0 = np.array([1, 2])
+    print(f'Starting point: x={x0[0]}')
+    print(f'Starting point: y={x0[1]}')
 
     # Call the function gradient_descent. Choose max_iter, learning_rate.
-    learning_rates = np.array([0.01, 0.005, 0.001])
-    max_iters = np.array([10000])
+    learning_rates = np.array([0.01])
+    max_iter = 5000
+
+    # i thnínk that the gradient function is wrongly implemented in the plot function
 
     for learning_rate in learning_rates:
-        for max_iter in max_iters:
             start = timeit.timeit()
-            x, E_list = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
+            x, E_list, recorder = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
             end = timeit.timeit()
+
+
             print(f'lr={learning_rate}, iters={max_iter}, time={end - start}')
             print(f'Minimum found for {learning_rate}: f({x}) = {eggholder(x)}')
-            plt.plot(E_list, label=f"lr={learning_rate}, iters={max_iter}")
+            plot_contour_w_gradient(eggholder, x0, recorder, E_list, learning_rate, max_iter)
 
-    plt.xlabel('Iteration')
-    plt.ylabel('Cost')
-    plt.autoscale(axis='y')
-    plt.legend()
-    plt.title('Cost over Iteration')
-    plt.savefig(f'plots/Task3/costOverIteration_{max_iters}_{learning_rates}.jpg', dpi=120)
-    plt.show()
+
 
     x_min = np.array([512, 404.2319])
     print(f'Global minimum: f({x_min}) = {eggholder(x_min)}')
@@ -238,8 +233,7 @@ def task_3():
 def main():
     #task_1()
 
-
-#    task_2()
+    # task_2()
     task_3()
 
 
