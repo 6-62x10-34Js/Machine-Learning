@@ -9,7 +9,6 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
     n = 1000
     fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     ax1.plot(E_list, label=f"lr={learning_rate}, iters={max_iter}")
-    # plot the contour plot to show gradients
     ax1.set_xlabel('Iteration')
     ax1.set_ylabel('Cost')
     ax1.autoscale(axis='y')
@@ -24,12 +23,15 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
     distance = math.dist(start_point, last)
 
     # plot contour plot with history andy_termination point
-    x_range = np.linspace(start_point[0] - distance / 2, last[0] + distance / 2, n)
-    y_range = np.linspace(start_point[1] - distance / 2, last[1] + distance / 2, n)
+    x_range = np.linspace(start_point[0] - 2 * distance, last[0] + 2 * distance, n)
+    y_range = np.linspace(start_point[1] - 2 * distance, last[1] + 2 * distance, n)
+    # x_range = np.linspace(-20, 20, n)
+    # y_range = np.linspace(-20, 20, n)
     X, Y = np.meshgrid(x_range, y_range)
     Z = f([X, Y])
 
-    cp = ax2.contour(X, Y, Z, levels=20, alpha=0.5)
+    cp = ax2.contourf(X, Y, Z, levels=25, alpha=0.5)
+
 
     ax2.scatter(start_point[0], start_point[1], c='red', marker='x', label='Starting Point')
     for i, x in enumerate(recorder):
@@ -43,7 +45,8 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
     fig2.legend()
     ax2.set_title('Contour Plot with History')
 
-    plt.savefig(f'plots/Task3/contour_and_cost{max_iter}_{learning_rate}TEST.jpg', dpi=120)
+    plt.title('Gradient Decent on $f(x,y)=x^2*y^2$')
+    plt.savefig(f'plots/Task3/contour_and_cost{max_iter}_{learning_rate}v2.jpg', dpi=120)
 
 
 def plot_eggholder_function(f):
@@ -70,12 +73,6 @@ def plot_eggholder_function(f):
     plt.show()
 
 
-def mean_squared_error(y_true, y_predicted):
-    # Calculating the loss or cost
-    cost = np.sum((y_true - y_predicted) ** 2) / len(y_true)
-    return cost
-
-
 def gradient_descent(f, df, x, learning_rate, max_iter):
     """
     Find the optimal solution of the function f(x) using gradient descent:
@@ -93,13 +90,15 @@ def gradient_descent(f, df, x, learning_rate, max_iter):
     E_list = np.zeros(max_iter)
     recorder = []
     record_interval = max_iter / 100
-
     for i in range(max_iter):
-        E_list[i] = f(x)
-        x = x - learning_rate * df(x)
 
+        grad = df(x)
+        x = x - learning_rate * - grad.T
+        error = f(x)
+        E_list[i] = error
+        recorder.append(x)
         if i % record_interval == 0:
-            recorder.append(x.copy())
+            recorder.append(x)
 
     return x, E_list, recorder
 
@@ -108,8 +107,11 @@ def eggholder(x):
     # Implement the cost function specified in the HW1 sheet
     z = - (x[1] + 47) * np.sin(np.sqrt(np.abs(x[0] / 2 + (x[1] + 47)))) - x[0] * np.sin(
         np.sqrt(np.abs(x[0] - (x[1] + 47))))
-    print('z')
-    print(z)
+    # print('x, y')
+    # print(f'{x[0]}, {x[1]}')
+    # z = x[0] ** 2 + x[1] ** 2
+    # print('z')
+    # print(z)
     return z
 
 
@@ -121,23 +123,28 @@ def div_check(x, y):
     else:
         return False
 
+
 def gradient_eggholder(f):
+    #working even though it uses wrong formula
     x = f[0]
     y = f[1]
 
     # Implement gradients of the Eggholder function w.r.t. x and y
-    x_term1 = - x * (-47 + x - y) * np.cos(np.sqrt(np.abs(47 + x - y))) / (2 * np.abs(-47 + x - y) ** (3 / 2))
-    x_term2 = - (47 + y) * (47 + x / 2 + y) * np.cos(np.sqrt(np.abs(47 + x / 2 + y))) / (
-            4 * np.abs(47 + x / 2 + y) ** (3 / 2))
-    x_term3 = - np.sin(np.sqrt(np.abs(-47 + x - y)))
+    x_term1 = - (x * (-x + y + 47) * np.cos(np.sqrt(np.abs(-x + y + 47))) / (2 * np.abs(-x + y + 47) ** (3 / 2)))
+    x_term2 = - ((47 + y) * (x + 2 * y + 94) * np.cos(np.sqrt(np.abs(47 + x / 2 + y))) / (
+            8 * np.abs(47 + x / 2 + y) ** (3 / 2)))
+    x_term3 = np.sin(np.sqrt(np.abs(-x + y + 47)))
 
-    grad_x = x_term1 + x_term2 + x_term3
+    grad_x = - x_term3 + x_term1 - x_term2
 
-    y_term1 = - x * (-47 + x - y) * np.cos(np.sqrt(np.abs(-47 + x - y))) / (2 * np.abs(-47 + x - y) ** (3 / 2))
-    y_term2 = - (47 + y) * (47 + x / 2 + y) * np.cos(np.sqrt(np.abs(47 + x / 2 + y))) / (
-            2 * np.abs(47 + x / 2 + y) ** (3 / 2))
-    y_term3 = - np.sin(np.sqrt(np.abs(-47 + x / 2 + y)))
-    grad_y = y_term1 + y_term2 + y_term3
+    y_term1 = - (x * (x - y - 47) * np.cos(np.sqrt(np.abs(-x + y + 47))) / (2 * np.abs(-x + y + 47) ** (3 / 2)))
+    y_term2 = - ((47 + y) * (x + 2 * y + 94) * np.cos(np.sqrt(np.abs(x / 2 + y + 47))) / (
+            4 * np.abs(x / 2 + y + 47) ** (3 / 2)))
+    y_term3 = np.sin(np.sqrt(np.abs(x / 2 + y + 47)))
+    grad_y = - y_term3 + y_term1 - y_term2
+
+    # grad_x = 2 * x
+    # grad_y = 2 * y
 
     return np.array([grad_x, grad_y])
 

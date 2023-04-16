@@ -11,6 +11,7 @@ import timeit
 
 cm_blue_orange = ListedColormap(['blue', 'orange'])
 
+
 def task_1():
     print('---- Task 1.1 ----')
     test_fit_zero_intercept_lin_model()
@@ -196,27 +197,22 @@ def task_3():
 
     # Done: choose a 2D random point from randint (-512, 512)
     x0 = np.array([random.randint(-512, 512), random.randint(-512, 512)])
-    #x0 = np.array([-401, 136])
+    x0 = np.array([-39, -482])
     print(f'Starting point: x={x0[0]}')
     print(f'Starting point: y={x0[1]}')
 
     # Call the function gradient_descent. Choose max_iter, learning_rate.
-    learning_rates = np.array([0.005])
-    max_iter = 10000
+    learning_rates = np.array([0.01])
+    max_iter = 1000
 
     # i thnínk that the gradient function is wrongly implemented in the plot function
 
     for learning_rate in learning_rates:
-            start = timeit.timeit()
-            x, E_list, recorder = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
-            end = timeit.timeit()
+        #x, E_list, recorder = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
+        x, E_list, recorder = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
 
-
-            print(f'lr={learning_rate}, iters={max_iter}, time={end - start}')
-            print(f'Minimum found for {learning_rate}: f({x}) = {eggholder(x)}')
-            plot_contour_w_gradient(eggholder, x0, recorder, E_list, learning_rate, max_iter)
-
-
+        print(f'Minimum found for {learning_rate}: f({x}) = {eggholder(x)}')
+        plot_contour_w_gradient(eggholder, x0, recorder, E_list, learning_rate, max_iter)
 
     x_min = np.array([512, 404.2319])
     print(f'Global minimum: f({x_min}) = {eggholder(x_min)}')
@@ -231,7 +227,7 @@ def task_3():
 
 
 def main():
-    #task_1()
+    # task_1()
 
     # task_2()
     task_3()
