@@ -22,7 +22,7 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
     last = np.array([last[0], last[1]])
     distance = math.dist(start_point, last)
 
-    # plot contour plot with history andy_termination point
+    # plot contour plot with history
     x_range = np.linspace(start_point[0] - 2 * distance, last[0] + 2 * distance, n)
     y_range = np.linspace(start_point[1] - 2 * distance, last[1] + 2 * distance, n)
     # x_range = np.linspace(-20, 20, n)
@@ -31,7 +31,7 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
     Z = f([X, Y])
 
     cp = ax2.contourf(X, Y, Z, levels=25, alpha=0.5)
-
+    fig2.colorbar(cp)
 
     ax2.scatter(start_point[0], start_point[1], c='red', marker='x', label='Starting Point')
     for i, x in enumerate(recorder):
@@ -41,12 +41,11 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
                 label=f'Last Iteration' "\n" f'minimum at {round(last[0], 2), round(last[1], 2)}')
     ax2.set_xlabel('x')
     ax2.set_ylabel('y')
-    fig2.colorbar(cp)
-    fig2.legend()
+    ax2.legend(loc='best', fontsize='x-small')
     ax2.set_title('Contour Plot with History')
 
-    plt.title('Gradient Decent on $f(x,y)=x^2*y^2$')
-    plt.savefig(f'plots/Task3/contour_and_cost{max_iter}_{learning_rate}v2.jpg', dpi=120)
+    plt.title('Gradient Decent')
+    plt.savefig(f'plots/Task3/contour_and_cost{max_iter}_{learning_rate}_{start_point}.jpg', dpi=120)
 
 
 def plot_eggholder_function(f):
@@ -90,10 +89,11 @@ def gradient_descent(f, df, x, learning_rate, max_iter):
     E_list = np.zeros(max_iter)
     recorder = []
     record_interval = max_iter / 100
+    # record_interval = max_iter
     for i in range(max_iter):
 
         grad = df(x)
-        x = x - learning_rate * - grad.T
+        x = x - learning_rate * grad
         error = f(x)
         E_list[i] = error
         recorder.append(x)
@@ -124,23 +124,39 @@ def div_check(x, y):
         return False
 
 
+def update_zero_values(variables, default_value=1e-6):
+    # update zero values to avoid division by zero
+    updated_variables = [var_value if var_value != 0 else default_value for var_value in variables]
+
+    return updated_variables
+
 def gradient_eggholder(f):
-    #working even though it uses wrong formula
     x = f[0]
     y = f[1]
 
+    # factor out the terms inside the square root
+    term_1 = np.abs(-x + y + 47)
+    term_2 = np.abs(47 + x / 2 + y)
+    term_3 = (47 + y) * (x + 2 * y + 94)
+    special_case_x = x * (-x + y + 47)
+    special_case_y = x * (x - y - 47)
+
+    variables = [term_1, term_2, term_3, special_case_x, special_case_y]
+    variables = update_zero_values(variables)
+    term_1, term_2, term_3, special_case_x, special_case_y = variables
+
     # Implement gradients of the Eggholder function w.r.t. x and y
-    x_term1 = - (x * (-x + y + 47) * np.cos(np.sqrt(np.abs(-x + y + 47))) / (2 * np.abs(-x + y + 47) ** (3 / 2)))
-    x_term2 = - ((47 + y) * (x + 2 * y + 94) * np.cos(np.sqrt(np.abs(47 + x / 2 + y))) / (
-            8 * np.abs(47 + x / 2 + y) ** (3 / 2)))
-    x_term3 = np.sin(np.sqrt(np.abs(-x + y + 47)))
+    x_term1 = (special_case_x * np.cos(np.sqrt(term_1)) / (2 * term_1 ** (3 / 2)))
+    x_term2 = (term_3 * np.cos(np.sqrt(term_2)) / (
+            8 * term_2 ** (3 / 2)))
+    x_term3 = np.sin(np.sqrt(term_1))
 
     grad_x = - x_term3 + x_term1 - x_term2
 
-    y_term1 = - (x * (x - y - 47) * np.cos(np.sqrt(np.abs(-x + y + 47))) / (2 * np.abs(-x + y + 47) ** (3 / 2)))
-    y_term2 = - ((47 + y) * (x + 2 * y + 94) * np.cos(np.sqrt(np.abs(x / 2 + y + 47))) / (
-            4 * np.abs(x / 2 + y + 47) ** (3 / 2)))
-    y_term3 = np.sin(np.sqrt(np.abs(x / 2 + y + 47)))
+    y_term1 = (special_case_y * np.cos(np.sqrt(term_1)) / (2 * term_1 ** (3 / 2)))
+    y_term2 = (term_3 * np.cos(np.sqrt(term_2)) / (
+            4 * term_2 ** (3 / 2)))
+    y_term3 = np.sin(np.sqrt(term_2))
     grad_y = - y_term3 + y_term1 - y_term2
 
     # grad_x = 2 * x

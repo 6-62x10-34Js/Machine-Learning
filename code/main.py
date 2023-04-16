@@ -194,15 +194,15 @@ def task_3():
 
     # Plot the function, to see how it looks like
     # plot_eggholder_function(eggholder)
-
+    #plot_all_problematic_values()
     # Done: choose a 2D random point from randint (-512, 512)
     x0 = np.array([random.randint(-512, 512), random.randint(-512, 512)])
-    x0 = np.array([-39, -482])
+    #x0 = np.array([47, 0])
     print(f'Starting point: x={x0[0]}')
     print(f'Starting point: y={x0[1]}')
 
     # Call the function gradient_descent. Choose max_iter, learning_rate.
-    learning_rates = np.array([0.01])
+    learning_rates = np.array([0.08])
     max_iter = 1000
 
     # i thnínk that the gradient function is wrongly implemented in the plot function
@@ -218,7 +218,7 @@ def task_3():
     print(f'Global minimum: f({x_min}) = {eggholder(x_min)}')
 
     # Test 1 - Problematic point 1. See HW1, Tasks 3.6 and 3.7.
-    x, y = 0, 0  # TODO: change me
+    x, y = 47, 0
     print('A problematic point: ', gradient_eggholder([x, y]))
 
     # Test 2 - Problematic point 2. See HW1, Tasks 3.6 and 3.7.
@@ -231,6 +231,8 @@ def main():
 
     # task_2()
     task_3()
+
+
 
 
 if __name__ == '__main__':
