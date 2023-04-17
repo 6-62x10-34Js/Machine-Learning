@@ -192,38 +192,33 @@ def task_2():
 def task_3():
     print('\n---- Task 3 ----')
 
-    # Plot the function, to see how it looks like
-    # plot_eggholder_function(eggholder)
-    #plot_all_problematic_values()
-    # Done: choose a 2D random point from randint (-512, 512)
+    # choose starting point and define problem points
     x0 = np.array([random.randint(-512, 512), random.randint(-512, 512)])
-    #x0 = np.array([47, 0])
+    problem_x0_1 = np.array([47, 0])
+    problem_x0_2 = np.array([52, 5])
+    #x0 = np.array([5, -5])
+
+    # Choose max_iter and learning_rates.
+    learning_rates = np.array([0.3, 0.1, 0.04])
+    max_iters = np.array([50, 200, 1000])
+
     print(f'Starting point: x={x0[0]}')
     print(f'Starting point: y={x0[1]}')
 
-    # Call the function gradient_descent. Choose max_iter, learning_rate.
-    learning_rates = np.array([0.08])
-    max_iter = 1000
-
-    # i thnínk that the gradient function is wrongly implemented in the plot function
-
     for learning_rate in learning_rates:
-        #x, E_list, recorder = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
-        x, E_list, recorder = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
-
-        print(f'Minimum found for {learning_rate}: f({x}) = {eggholder(x)}')
-        plot_contour_w_gradient(eggholder, x0, recorder, E_list, learning_rate, max_iter)
+        for max_iter in max_iters:
+            x, E_list, recorder = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
+            print(f'Minimum found for {learning_rate}: f({x}) = {eggholder(x)}')
+            plot_contour_w_gradient(eggholder, x0, recorder, E_list, learning_rate, max_iter)
 
     x_min = np.array([512, 404.2319])
     print(f'Global minimum: f({x_min}) = {eggholder(x_min)}')
 
     # Test 1 - Problematic point 1. See HW1, Tasks 3.6 and 3.7.
-    x, y = 47, 0
-    print('A problematic point: ', gradient_eggholder([x, y]))
+    print('A problematic point: ', gradient_eggholder([problem_x0_1[0], problem_x0_1[1]]))
 
     # Test 2 - Problematic point 2. See HW1, Tasks 3.6 and 3.7.
-    x, y = 0, 0  # TODO: change me
-    print('Another problematic point: ', gradient_eggholder([x, y]))
+    print('Another problematic point: ', gradient_eggholder([problem_x0_2[0], problem_x0_2[1]]))
 
 
 def main():
@@ -231,8 +226,6 @@ def main():
 
     # task_2()
     task_3()
-
-
 
 
 if __name__ == '__main__':

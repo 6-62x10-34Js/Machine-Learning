@@ -45,7 +45,9 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
     ax2.set_title('Contour Plot with History')
 
     plt.title('Gradient Decent')
-    plt.savefig(f'plots/Task3/contour_and_cost{max_iter}_{learning_rate}_{start_point}.jpg', dpi=120)
+    plt.savefig(
+        f'plots/Task3/contour_and_cost{max_iter}_{learning_rate}_{start_point[0], start_point[1]}_TestFunct.jpg',
+        dpi=120)
 
 
 def plot_eggholder_function(f):
@@ -106,29 +108,18 @@ def gradient_descent(f, df, x, learning_rate, max_iter):
 def eggholder(x):
     # Implement the cost function specified in the HW1 sheet
     z = - (x[1] + 47) * np.sin(np.sqrt(np.abs(x[0] / 2 + (x[1] + 47)))) - x[0] * np.sin(
-        np.sqrt(np.abs(x[0] - (x[1] + 47))))
-    # print('x, y')
-    # print(f'{x[0]}, {x[1]}')
-    # z = x[0] ** 2 + x[1] ** 2
-    # print('z')
-    # print(z)
+       np.sqrt(np.abs(x[0] - (x[1] + 47))))
+
+    #z = x[0] ** 2 + x[1] ** 2
+
     return z
-
-
-def div_check(x, y):
-    try:
-        x / y
-    except ZeroDivisionError:
-        return True
-    else:
-        return False
 
 
 def update_zero_values(variables, default_value=1e-6):
     # update zero values to avoid division by zero
     updated_variables = [var_value if var_value != 0 else default_value for var_value in variables]
-
     return updated_variables
+
 
 def gradient_eggholder(f):
     x = f[0]
@@ -140,8 +131,9 @@ def gradient_eggholder(f):
     term_3 = (47 + y) * (x + 2 * y + 94)
     special_case_x = x * (-x + y + 47)
     special_case_y = x * (x - y - 47)
-
     variables = [term_1, term_2, term_3, special_case_x, special_case_y]
+
+    # TODO: Comment out the next line to test the problmatic points
     variables = update_zero_values(variables)
     term_1, term_2, term_3, special_case_x, special_case_y = variables
 
@@ -159,8 +151,8 @@ def gradient_eggholder(f):
     y_term3 = np.sin(np.sqrt(term_2))
     grad_y = - y_term3 + y_term1 - y_term2
 
-    # grad_x = 2 * x
-    # grad_y = 2 * y
+    grad_x = 2 * x
+    grad_y = 2 * y
 
     return np.array([grad_x, grad_y])
 
