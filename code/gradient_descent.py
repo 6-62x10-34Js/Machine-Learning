@@ -32,6 +32,7 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
 
     cp = ax2.contourf(X, Y, Z, levels=25, alpha=0.5)
     fig2.colorbar(cp)
+    fig2.suptitle('Gradient Descent with parameters: ' + '\n' + f'lr={learning_rate}, iters={max_iter}, start_point=({start_point[0], start_point[1]})')
 
     ax2.scatter(start_point[0], start_point[1], c='red', marker='x', label='Starting Point')
     for i, x in enumerate(recorder):
@@ -45,9 +46,10 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
     ax2.set_title('Contour Plot with History')
 
     plt.title('Gradient Decent')
-    plt.savefig(
-        f'plots/Task3/contour_and_cost{max_iter}_{learning_rate}_{start_point[0], start_point[1]}_TestFunct.jpg',
-        dpi=120)
+    plt.show()
+    # plt.savefig(
+    #     f'plots/Task3/contour_and_cost{max_iter}_{learning_rate}_{start_point[0], start_point[1]}_TestFunct.jpg',
+    #     dpi=120)
 
 
 def plot_eggholder_function(f):
@@ -68,9 +70,15 @@ def plot_eggholder_function(f):
     ZZ = np.zeros(XX.shape)
     print(ZZ.shape)
     ZZ = f([XX, YY])
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    ax.set_title('Eggholder Function')
 
     ax.plot_surface(XX, YY, ZZ, cmap='jet')
-
+    # plt.savefig(
+    #     f'plots/Task3/eggholder.jpg',
+    #     dpi=120)
     plt.show()
 
 
@@ -151,8 +159,8 @@ def gradient_eggholder(f):
     y_term3 = np.sin(np.sqrt(term_2))
     grad_y = - y_term3 + y_term1 - y_term2
 
-    grad_x = 2 * x
-    grad_y = 2 * y
+    #grad_x = 2 * x
+    #grad_y = 2 * y
 
     return np.array([grad_x, grad_y])
 
