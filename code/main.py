@@ -2,9 +2,9 @@ import random
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from gradient_descent import eggholder, gradient_eggholder, gradient_descent, plot_eggholder_function, \
-    plot_contour_w_gradient
+    plot_contour_w_gradient, gradient_eggholder_unsafe
 from lin_reg_memristors import test_fit_zero_intercept_lin_model, test_fit_lin_model_with_intercept, \
     fit_zero_intercept_lin_model, fit_lin_model_with_intercept, predict_fault_type
 
@@ -115,8 +115,6 @@ def task_1():
     print(zero_prediction)
 
     # for this task the functions "decide_zero" and "decide_non_zero" have been implemented
-
-    print(estimated_params_per_memristor.shape)
     # for i in range(len(estimated_theta_per_memristor))
     plt.show()
 
@@ -125,6 +123,7 @@ def task_1():
 
 def task_2():
     print('\n---- Task 2 ----')
+
 
     def plot_datapoints(X, y, title, fig_name='fig.png'):
         fig, axs = plt.subplots(1, 1, figsize=(5, 5))
@@ -137,7 +136,7 @@ def task_2():
         axs.legend(*p.legend_elements(), loc='best', bbox_to_anchor=(0.96, 1.15))
 
         # fig.savefig(fig_name) # TODO: Uncomment if you want to save it
-        plt.show()  # if you want to see it now
+        plt.show() # if you want to see it now
         plt.close()  # Comment/Uncomment
 
     for task in [0, 1, 2]:
@@ -149,10 +148,10 @@ def task_2():
 
             # X_feature = np.array([X_data[:,0]+X_data[:,1]]).T
             X_feature = np.array([np.sign(X_data[:, 0] - 10 + 1) * np.sign(21 - X_data[:, 1]) * (
-                        1 - np.sign(X_data[:, 0] - 30) * np.sign(X_data[:, 1])) * (
-                                              1 - np.sign(X_data[:, 1] - 20) * np.sign(X_data[:, 0]))]).T
+                    1 - np.sign(X_data[:, 0] - 30) * np.sign(X_data[:, 1])) * (
+                                          1 - np.sign(X_data[:, 1] - 20) * np.sign(X_data[:, 0]))]).T
             # X = np.concatenate([np.ones((X_data.shape[0],1)),X_data], axis=1)# create the design matrix based on the features in X_data
-            X = np.concatenate([np.ones((X_feature.shape[0], 1)), X_feature], axis=1)
+            X = X_feature
         elif task == 1:
             # Load the data set 2 (X-1-data.npy and targets-dataset-2.npy)
             X_data = np.load('data/X-1-data.npy')
@@ -160,8 +159,7 @@ def task_2():
 
             X_feature = np.array([np.sqrt(X_data[:, 0] ** 2 + X_data[:, 1] ** 2)]).T
             # X = np.concatenate([np.ones((X_feature.shape[0],1)),X_feature], axis=1) # create the design matrix based on the features in X_data
-            X = np.concatenate([np.ones((X_feature.shape[0], 1)), X_feature], axis=1)
-
+            X = X_feature
         elif task == 2:
             # Load the data set 3 (X-2-data.npy and targets-dataset-3.npy)
             X_data = np.load('data/X-2-data.npy')
@@ -169,7 +167,10 @@ def task_2():
             X_feature = np.column_stack((X_data[:, 0], X_data[:, 1], X_data[:, 0] ** 2, X_data[:, 0] ** 3,
                                          X_data[:, 0] ** 4, X_data[:, 0] ** 5, X_data[:, 0] ** 6))
             # X = np.concatenate([np.ones((X_data.shape[0],1)),X_data], axis=1) # create the design matrix based on the features in X_data
-            X = np.concatenate([np.ones((X_feature.shape[0], 1)), X_feature], axis=1)
+            X = X_feature
+
+
+
 
         plot_datapoints(X_data, y, 'Targets',
                         'plots/targets_' + str(task) + '.png')  # Uncomment to generate plots as in the exercise sheet
@@ -217,6 +218,8 @@ def task_2():
         # Implement Bias Term
         theta_zero = clf.intercept_
         print('theta_zero:', theta_zero)
+
+
 def task_3():
     print('\n---- Task 3 ----')
     # choose starting point and define problem points
@@ -232,7 +235,6 @@ def task_3():
     print(f'Starting point: y={x0[1]}')
     plot_eggholder_function(eggholder)
 
-
     for learning_rate in learning_rates:
         for max_iter in max_iters:
             x, E_list, recorder = gradient_descent(eggholder, gradient_eggholder, x0, learning_rate, max_iter)
@@ -242,16 +244,17 @@ def task_3():
     x_min = np.array([512, 404.2319])
     print(f'Global minimum: f({x_min}) = {eggholder(x_min)}')
 
+    # Use unsafe gradient function to test the problematic points.
+
     # Test 1 - Problematic point 1. See HW1, Tasks 3.6 and 3.7.
-    print('A problematic point: ', gradient_eggholder([problem_x0_1[0], problem_x0_1[1]]))
+    print('A problematic point: ', gradient_eggholder_unsafe([problem_x0_1[0], problem_x0_1[1]]))
 
     # Test 2 - Problematic point 2. See HW1, Tasks 3.6 and 3.7.
-    print('Another problematic point: ', gradient_eggholder([problem_x0_2[0], problem_x0_2[1]]))
+    print('Another problematic point: ', gradient_eggholder_unsafe([problem_x0_2[0], problem_x0_2[1]]))
 
 
 def main():
     task_1()
-
     task_2()
     task_3()
 

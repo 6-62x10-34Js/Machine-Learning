@@ -27,14 +27,7 @@ def fit_zero_intercept_lin_model(x, y):
     :param y: y coordinates of data points (i.e., \Delta R_i$)
     :return: theta 
     """
-
-
-    n = len(x)
-    theta = (sum(x * y) / (sum(x)) ** 2) / n
-
-    # This is the code that gives the logical results
-
-    #theta = (sum(x * y) - sum(x) * sum(y) / n) / (sum(x ** 2) - sum(x) ** 2 / n)
+    theta = (sum(x * y) / (sum(x)) ** 2)
 
     return theta
 

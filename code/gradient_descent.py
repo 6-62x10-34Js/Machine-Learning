@@ -32,7 +32,8 @@ def plot_contour_w_gradient(f, start_point, recorder, E_list, learning_rate, max
 
     cp = ax2.contourf(X, Y, Z, levels=25, alpha=0.5)
     fig2.colorbar(cp)
-    fig2.suptitle('Gradient Descent with parameters: ' + '\n' + f'lr={learning_rate}, iters={max_iter}, start_point=({start_point[0], start_point[1]})')
+    fig2.suptitle(
+        'Gradient Descent with parameters: ' + '\n' + f'lr={learning_rate}, iters={max_iter}, start_point=({start_point[0], start_point[1]})')
 
     ax2.scatter(start_point[0], start_point[1], c='red', marker='x', label='Starting Point')
     for i, x in enumerate(recorder):
@@ -116,9 +117,9 @@ def gradient_descent(f, df, x, learning_rate, max_iter):
 def eggholder(x):
     # Implement the cost function specified in the HW1 sheet
     z = - (x[1] + 47) * np.sin(np.sqrt(np.abs(x[0] / 2 + (x[1] + 47)))) - x[0] * np.sin(
-       np.sqrt(np.abs(x[0] - (x[1] + 47))))
+        np.sqrt(np.abs(x[0] - (x[1] + 47))))
 
-    #z = x[0] ** 2 + x[1] ** 2
+    # z = x[0] ** 2 + x[1] ** 2
 
     return z
 
@@ -141,7 +142,6 @@ def gradient_eggholder(f):
     special_case_y = x * (x - y - 47)
     variables = [term_1, term_2, term_3, special_case_x, special_case_y]
 
-    # TODO: Comment out the next line to test the problmatic points
     variables = update_zero_values(variables)
     term_1, term_2, term_3, special_case_x, special_case_y = variables
 
@@ -159,8 +159,42 @@ def gradient_eggholder(f):
     y_term3 = np.sin(np.sqrt(term_2))
     grad_y = - y_term3 + y_term1 - y_term2
 
-    #grad_x = 2 * x
-    #grad_y = 2 * y
+    # grad_x = 2 * x
+    # grad_y = 2 * y
+
+    return np.array([grad_x, grad_y])
+
+
+def gradient_eggholder_unsafe(f):
+    x = f[0]
+    y = f[1]
+
+    # factor out the terms inside the square root
+    term_1 = np.abs(-x + y + 47)
+    term_2 = np.abs(47 + x / 2 + y)
+    term_3 = (47 + y) * (x + 2 * y + 94)
+    special_case_x = x * (-x + y + 47)
+    special_case_y = x * (x - y - 47)
+    variables = [term_1, term_2, term_3, special_case_x, special_case_y]
+
+    term_1, term_2, term_3, special_case_x, special_case_y = variables
+
+    # Implement gradients of the Eggholder function w.r.t. x and y
+    x_term1 = (special_case_x * np.cos(np.sqrt(term_1)) / (2 * term_1 ** (3 / 2)))
+    x_term2 = (term_3 * np.cos(np.sqrt(term_2)) / (
+            8 * term_2 ** (3 / 2)))
+    x_term3 = np.sin(np.sqrt(term_1))
+
+    grad_x = - x_term3 + x_term1 - x_term2
+
+    y_term1 = (special_case_y * np.cos(np.sqrt(term_1)) / (2 * term_1 ** (3 / 2)))
+    y_term2 = (term_3 * np.cos(np.sqrt(term_2)) / (
+            4 * term_2 ** (3 / 2)))
+    y_term3 = np.sin(np.sqrt(term_2))
+    grad_y = - y_term3 + y_term1 - y_term2
+
+    # grad_x = 2 * x
+    # grad_y = 2 * y
 
     return np.array([grad_x, grad_y])
 
