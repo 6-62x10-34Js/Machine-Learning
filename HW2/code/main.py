@@ -1,16 +1,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from nn_classification import reduce_dimension, train_nn, train_nn_with_regularization, train_nn_with_different_seeds, \
-    perform_grid_search
+    perform_grid_search, compare_train_methods, plot_result_dicts
 from nn_regression import solve_regression_task
 
-
+# Description
+# We are tasked with solving a regression problem using Neural Networks. We are given features and targets and implement the Mean-Squared-Error (MSE) as follows:
+#
+# We use MLPRegressor frim sklearn.neural_network to solve the regression problem. We want to find the best hyperparameters for the model.
+# We used a manual search to find the best hyperparameters. We use the following hyperparameters:
+#   - number of hidden neurons
+#   - optimizer
+#   - regularization
+# With those hyperparameters we train the model and evaluate the performance on the test set.
+# We use the MSE as a metric to evaluate the performance of the model as described in XXXXX.
+# Our programm allows for a manual search of the hyperparameters by accepting lists of 3 values for each hyperparameter and then trains the model for each combination of hyperparameters.
+# When then evaluate the performance of the model on the test set and analyze the results.
+# For the number of hidden neurons we choose 3 different values: 100, 50, 25 in increasing depth of the network.
+# For the optimizer we choose 3 different values: 'adam', 'sgd', 'lbfgs'.
+# For the regularization we choose 3 different values: 0.0001, 0.01, 1.
+# We then train the model for each combination of hyperparameters and evaluate the performance on the test set.
+# We then analyze the results and choose the best hyperparameters by looking at the coefficient of determination R^2 and the MSE.
+# We build maxima, minima and mean values for the R^2 and MSE for each combination of hyperparameters and evaluate them.
+# We then choose the best hyperparameters and train the model on the whole dataset and evaluate the performance on the test set.
 
 def task_1_1_and_1_2():
 
     # Load the 'data/features.npy' and 'data/targets.npy' using np.load.
-    features = np.zeros((2062, 64, 64)) # TODO: Change me
-    targets = np.zeros((2062,))  # TODO: Change me
+    features = np.load('data/features.npy')
+    targets = np.load('data/targets.npy')
     print(f'Shapes: {features.shape}, {targets.shape}')
 
     # Show one sample for each digit
@@ -28,29 +46,34 @@ def task_1_1_and_1_2():
 
     features = features.reshape((features.shape[0], -1))
     print(features.shape)
-
+    #{'activation': 'relu', 'alpha': 0.0001, 'hidden_layer_sizes': (100,), 'random_state': 42, 'solver': 'adam'}
     # PCA
     # Task 1.1.1
     print("----- Task 1.1.1 -----")
-    n_components = 1 # TODO: Change me
+    n_components = 1 # Changed in reduce_dimension
     X_reduced = reduce_dimension(features, n_components)
     print(X_reduced.shape)
 
     # Task 1.1.2
     print("----- Task 1.1.2 -----")
-    train_nn(X_reduced, targets)
+    n_hidden_neurons = [2, 10, 100, 200]
 
-    # Task 1.1.3
-    print("----- Task 1.1.3 -----")
-    train_nn_with_regularization(X_reduced, targets)
+    res_dict_1 = train_nn(X_reduced, targets, n_hidden_neurons)
+    #
+    # # Task 1.1.3
+    # print("----- Task 1.1.3 -----")
+    res_dict_2 = train_nn_with_regularization(X_reduced, targets, n_hidden_neurons)
 
-    # Task 1.1.4
-    print("----- Task 1.1.4 -----")
-    train_nn_with_different_seeds(X_reduced, targets)
+    compare_train_methods(res_dict_1, res_dict_2)
+    plot_result_dicts(res_dict_1, res_dict_2)
+    #
+    # # Task 1.1.4
+    # print("----- Task 1.1.4 -----")
+    # train_nn_with_different_seeds(X_reduced, targets)
 
-    # Task 1.2   
+    # Task 1.2
     print("----- Task 1.2 -----")
-    perform_grid_search(X_reduced, targets)
+    #perform_grid_search(X_reduced, targets)
 
 
 def task_2(): # Regression with NNs

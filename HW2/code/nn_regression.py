@@ -5,6 +5,7 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import GridSearchCV
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 
 def calculate_mse(targets, predictions):
@@ -37,6 +38,7 @@ def solve_regression_task(features, targets, n_hidden_neurons_list, optimizer_li
 
     for n_hidden_neurons in n_hidden_neurons_list:
         train_losses = []
+        test_losses = []
         r_q = []
         for optimizer in optimizer_list:
             for regulization in regulization_list:
@@ -46,8 +48,9 @@ def solve_regression_task(features, targets, n_hidden_neurons_list, optimizer_li
                 expected_y = y_test
                 predicted_y = model.predict(X_test)
                 train_loss = calculate_mse(expected_y, predicted_y)
+                test_loss = calculate_mse(y_train, model.predict(X_train))
                 r_squared = model.score(X_test, y_test)
-
+                test_losses.append(test_loss)
                 train_losses.append(train_loss)
                 r_q.append(r_squared)
 
@@ -57,20 +60,71 @@ def solve_regression_task(features, targets, n_hidden_neurons_list, optimizer_li
                 # plt.ylabel('Predicted y')
                 # plt.show()
 
-                data.append([n_hidden_neurons, optimizer, regulization, train_loss, r_q])
-    analyze_data(np.array(data), n_hidden_neurons_list, optimizer_list, regulization_list)
+                data.append([n_hidden_neurons, optimizer, regulization, train_loss, test_loss, r_q])
+    best_params, worst_params, mean_params = analyze_data(np.array(data), n_hidden_neurons_list, optimizer_list, regulization_list)
+
+    # run the model with the best parameters and compare the results with the results obtained by using the model
+    # with the default parameters (you can use the same random_state in all runs).
+    model = MLPRegressor(hidden_layer_sizes=best_params[2], activation='logistic', solver=best_params[0],
+                         alpha=best_params[1], max_iter=200, random_state=33)
+    model.fit(X_train, y_train)
+    expected_y = y_test
+    predicted_y = model.predict(X_test)
+    train_loss = calculate_mse(expected_y, predicted_y)
+    test_loss = calculate_mse(y_train, model.predict(X_train))
+    r_squared = model.score(X_test, y_test)
+    df_best_regression = pd.DataFrame({'Expected y': expected_y, 'Predicted y': predicted_y})
+
+    model_worst = MLPRegressor(hidden_layer_sizes=worst_params[2], activation='logistic', solver=worst_params[0],
+                            alpha=worst_params[1], max_iter=200, random_state=33)
+    model_worst.fit(X_train, y_train)
+    expected_y_worst = y_test
+    predicted_y_worst = model_worst.predict(X_test)
+    df_worst_regression = pd.DataFrame({'Expected y': expected_y_worst, 'Predicted y': predicted_y_worst})
+
+    model_mean = MLPRegressor(hidden_layer_sizes=mean_params[2], activation='logistic', solver=mean_params[0],
+                            alpha=mean_params[1], max_iter=200, random_state=33)
+    model_mean.fit(X_train, y_train)
+    expected_y_mean = y_test
+    predicted_y_mean = model_mean.predict(X_test)
+    df_mean_regression = pd.DataFrame({'Expected y': expected_y_mean, 'Predicted y': predicted_y_mean})
+
+    df = pd.concat([df_best_regression.assign(model = 'model best'), df_worst_regression.assign(model = 'model worst'), df_mean_regression.assign(model = 'model mean')])
+
+    fig, ax = plt.subplots()
+    models = ['model best', 'model worst', 'model mean']
+    for model in models:
+        sns.regplot(x='Expected y', y='Predicted y', data=df[df['model'] == model], fit_reg=True, line_kws={'label': 'Regression for ' + model}, ci=None, ax=ax, truncate=True)
+    plt.title('Comparison of the best, worst and mean model')
+    plt.xlabel('Expected y')
+    plt.ylabel('Predicted y')
+    plt.legend()
+    plt.show()
+
+    print('The best train loss is: ' + str(train_loss))
+    print('The best test loss is: ' + str(test_loss))
+    print('The best R^2 is: ' + str(r_squared))
+
+
     return
 
-
+def print_data_to_csv(data):
+    """
+    :param data:
+    :return:
+    """
+    np.savetxt("data.csv", data, delimiter=",", fmt='%s')
+    return
 def analyze_data(data, n_hidden_neurons_list, optimizer_list, regulization_list):
     """
     :param data:
 
     :return:
     """
-
+    print_data_to_csv(data)
     train_loss = data[:, 3]
-    r_squared = data[:, 4]
+    test_loss = data[:, 4]
+    r_squared = data[:, 5]
 
     n_neurons = data[:, 0]
     optimizer = data[:, 1]
@@ -78,8 +132,13 @@ def analyze_data(data, n_hidden_neurons_list, optimizer_list, regulization_list)
 
     best_r_squared_index = np.argmax(r_squared)
     worst_r_squared_index = np.argmin(r_squared)
+    mean_r_squared_index = np.argsort(r_squared)[len(r_squared) // 2]
+
+
+
     best_r_squared = r_squared[best_r_squared_index]
     worst_r_squared = r_squared[worst_r_squared_index]
+    mean_r_squared = r_squared[mean_r_squared_index]
 
     # find the best train loss and test loss
     best_train_loss_index = np.argmin(train_loss)
@@ -92,6 +151,8 @@ def analyze_data(data, n_hidden_neurons_list, optimizer_list, regulization_list)
 
     # median of train loss and test loss
     median_train_loss = np.median(train_loss)
+
+
 
     # print the results
     print('---------------------------RESULTS---------------------------------')
@@ -223,4 +284,7 @@ def analyze_data(data, n_hidden_neurons_list, optimizer_list, regulization_list)
     print(f'With a train loss of: {train_loss[best_train_loss_index]}')
     print(f'And an $R^{2}$ of: {np.max(r_squared[best_train_loss_index])}')
 
-    return
+    best_parameters = [optimizer[best_train_loss_index], regulization[best_train_loss_index], n_neurons[best_train_loss_index]]
+    worst_paramters = [optimizer[worst_r_squared_index], regulization[worst_r_squared_index], n_neurons[worst_r_squared_index]]
+    mean_parameters = [optimizer[mean_r_squared_index], regulization[mean_r_squared_index], n_neurons[mean_r_squared_index]]
+    return best_parameters, worst_paramters, mean_parameters

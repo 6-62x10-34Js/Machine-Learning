@@ -6,6 +6,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.model_selection import GridSearchCV
 import warnings
 warnings.filterwarnings("ignore")
+import matplotlib.pyplot as plt
 
 
 def reduce_dimension(features, n_components):
@@ -15,16 +16,26 @@ def reduce_dimension(features, n_components):
     :return: Data with reduced dimensionality. Shape: (n_samples, n_components)
     """
 
-    # pca = # TODO # Create an instance of PCA from sklearn.decomposition (already imported). 
+    # pca = # TODO # Create an instance of PCA from sklearn.decomposition (already imported).
     # Set the parameters (some of them are specified in the HW2 sheet).
+    pca = PCA(random_state=1)
 
-    X_reduced = np.zeros((features.shape[0], n_components)) # TODO # Fit the model with features, and apply the transformation on the features.
+    # fit the model with features, and apply the transformation on the features
+    pca.fit(features)
+    cum_var = np.cumsum(pca.explained_variance_ratio_)
+    n_components = np.argmax(cum_var >= 0.95) + 1
 
-    explained_var = 0 # TODO: # Calculate the percentage of variance explained
-    print(f'Explained variance: {explained_var}')
+    # apply the transformation on the features
+    X_reduced = pca.transform(features)[:,:n_components]
+
+    # print the explained variance
+    print(f'Explained variance: {pca.explained_variance_ratio_}')
+    print(f'Number of components: {n_components}')
+
+
     return X_reduced
 
-def train_nn(features, targets):
+def train_nn(features, targets, n_hidden_neurons):
     """
     Train MLPClassifier with different number of neurons in one hidden layer.
 
@@ -33,18 +44,112 @@ def train_nn(features, targets):
     :return:
     """
     X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=33)
-
-    n_hidden_neurons = 1 # TODO create a list
+    result_dict = {}
     # TODO create an instance of MLPClassifier from sklearn.neural_network (already imported).
     # Set the parameters (some of them are specified in the HW2 sheet).
+    # For each number of neurons in n_hidden_neurons, train the model and print the accuracy on the training and test set.
+    param_dict = {'hidden_layer_sizes': [n_hidden_neurons], 'alpha': [0.0001, 0.01], 'early_stopping': [True, False]}
+    result_dict = {}
+    for n_hid in param_dict['hidden_layer_sizes']:
+    #try all combinations of parameters
+        for alpha in param_dict['alpha']:
+            for early_stopping in param_dict['early_stopping']:
+                model = MLPClassifier(hidden_layer_sizes=n_hid, alpha=alpha, early_stopping=early_stopping, random_state=1, max_iter= 500)
+                model.fit(X_train, y_train)
+                train_acc = model.score(X_train, y_train)
+                test_acc = model.score(X_test, y_test)
+                loss = model.loss_
 
-    train_acc = 0 # TODO
-    test_acc = 0 # TODO
-    loss = 0 # TODO
-    print(f'Train accuracy: {train_acc:.4f}. Test accuracy: {test_acc:.4f}')
-    print(f'Loss: {loss:.4f}')
+                # add results to dictionary
+                result_dict[n_hid][alpha][early_stopping] = {'train_acc': train_acc, 'test_acc': test_acc, 'loss': loss}
 
-def train_nn_with_regularization(features, targets):
+                print(f'Number of neurons: {n_hid}')
+                print(f'Train accuracy: {train_acc:.4f}. Test accuracy: {test_acc:.4f}')
+                print(f'Loss: {loss:.4f}')
+                print('------------------')
+    return result_dict
+
+def plot_result_dicts(result_dict1, result_dict2):
+    # Extract the alpha, early_stopping, and n_hid values from result_dict1
+    alphas = list(result_dict1.keys())
+    early_stopping_values = list(result_dict1[alphas[0]].keys())
+    n_hid_values = list(result_dict1[alphas[0]][early_stopping_values[0]].keys())
+
+    # Define the bar width and offset
+    bar_width = 0.35
+    offset = bar_width
+
+    # Set up the figure and axis
+    fig, ax = plt.subplots()
+
+    # Iterate over the alpha, early_stopping, and n_hid values
+    for i, alpha in enumerate(alphas):
+        for j, early_stopping in enumerate(early_stopping_values):
+            train_acc1 = [result_dict1[alpha][early_stopping][n_hid]['train_acc'] for n_hid in n_hid_values]
+            test_acc1 = [result_dict1[alpha][early_stopping][n_hid]['test_acc'] for n_hid in n_hid_values]
+            train_acc2 = [result_dict2[alpha][early_stopping][n_hid]['train_acc'] for n_hid in n_hid_values]
+            test_acc2 = [result_dict2[alpha][early_stopping][n_hid]['test_acc'] for n_hid in n_hid_values]
+
+            # Calculate the x position for each group
+            x = np.arange(len(n_hid_values))
+
+            # Plot the train accuracy bars for result_dict1
+            ax.bar(x - offset, train_acc1, bar_width, label=f'Dict1 (Alpha: {alpha}, Early Stopping: {early_stopping})')
+
+            # Plot the test accuracy bars for result_dict1
+            ax.bar(x, test_acc1, bar_width, label=f'Dict1 (Alpha: {alpha}, Early Stopping: {early_stopping}), Early Stopping')
+
+            # Plot the train accuracy bars for result_dict2
+            ax.bar(x + offset, train_acc2, bar_width, label=f'Dict2 (Alpha: {alpha}, Early Stopping: {early_stopping})')
+
+            # Plot the test accuracy bars for result_dict2
+            ax.bar(x + 2 * offset, test_acc2, bar_width, label=f'Dict2 (Alpha: {alpha}, Early Stopping: {early_stopping}), Early Stopping')
+
+            # Increment the offset for the next alpha
+            offset += 4 * bar_width
+
+    # Set the x-axis labels
+    ax.set_xticks(np.arange(len(n_hid_values)) + bar_width * (len(early_stopping_values) - 1) / 2)
+    ax.set_xticklabels(n_hid_values)
+
+    # Set the y-axis label and title
+    ax.set_ylabel('Accuracy')
+    ax.set_title('Train and Test Accuracy Comparison')
+
+    # Add a legend
+    ax.legend()
+
+    # Show the plot
+    plt.show()
+def compare_train_methods(result_dict1, result_dict2):
+    """
+    Compare the results of training with different methods.
+
+    :param res_arr_1: Results of training without regularization
+    :param res_arr_2: Results of training with regularization
+    :return:
+    """
+    for alpha, alpha_dict1 in result_dict1.items():
+        alpha_dict2 = result_dict2.get(alpha, {})
+
+        for early_stopping, result1 in alpha_dict1.items():
+            result2 = alpha_dict2.get(early_stopping, {})
+
+            train_acc1 = result1['train_acc']
+            test_acc1 = result1['test_acc']
+
+            train_acc2 = result2.get('train_acc', None)
+            test_acc2 = result2.get('test_acc', None)
+
+            print(f"Alpha: {alpha}, Early Stopping: {early_stopping}")
+            print(f"Dict1 - Train Accuracy: {train_acc1}")
+            print(f"Dict1 - Test Accuracy: {test_acc1}")
+            print(f"Dict2 - Train Accuracy: {train_acc2}")
+            print(f"Dict2 - Test Accuracy: {test_acc2}")
+            print("------------------")
+
+
+def train_nn_with_regularization(features, targets, n_hidden_neurons):
     """
     Train MLPClassifier using regularization.
 
@@ -55,13 +160,34 @@ def train_nn_with_regularization(features, targets):
     X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=33)
 
     # Copy your code from train_nn, but experiment now with regularization (alpha, early_stopping).
+    param_dict = {'alpha': [0.0001, 0.1], 'early_stopping': [True, False], 'hidden_layer_sizes': [n_hidden_neurons]}
+    result_dict = {}
+    for n_hid in n_hidden_neurons:
+        #try all combinations of parameters
+        for alpha in param_dict['alpha']:
+            for early_stopping in param_dict['early_stopping']:
+                model = MLPClassifier(hidden_layer_sizes=(n_hid,), random_state=1, max_iter=500, solver= 'adam', alpha=alpha, early_stopping=early_stopping)
+                model.fit(X_train, y_train)
+                train_acc = model.score(X_train, y_train)
+                test_acc = model.score(X_test, y_test)
+                loss = model.loss_
+                print(f'Number of neurons: {n_hid}')
+                if alpha == 0.0001:
+                    alpha = 'default'
+                if early_stopping == False:
+                    early_stopping = 'default'
 
-    train_acc = 0 # TODO
-    test_acc =  0 # TODO
-    loss =  0 # TODO
-    print(f'Train accuracy: {train_acc:.4f}. Test accuracy: {test_acc:.4f}')
-    print(f'Loss: {loss:.4f}')
+                # add results to dictionary
+                result_dict[alpha][early_stopping][n_hid] = {'train_acc': train_acc, 'test_acc': test_acc, 'loss': loss}
 
+                print(f'Alpha: {alpha}')
+                print(f'Early stopping: {early_stopping}')
+                print(f'Train accuracy: {train_acc:.4f}. Test accuracy: {test_acc:.4f}')
+                print(f'Loss: {loss:.4f}')
+                print('------------------')
+
+    # print the results
+    return result_dict
 
 def train_nn_with_different_seeds(features, targets):
     """
@@ -132,11 +258,22 @@ def perform_grid_search(features, targets):
         'layer2': (50, 50),
         'layer3': (100, 50, 25)
     }
-    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=33)
 
+    param_grid = {
+        'hidden_layer_sizes': list(n_hidden_neurons_dict.values()),
+        'activation': ['relu'],
+        'solver': list(optimizer_dict.values()),
+        'alpha': list(regularization_dict.values()),
+        'random_state': [123]
+    }
+    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=param_grid['random_state'][0])
+    mlp = MLPClassifier(max_iter=1000)
+    grid_search = GridSearchCV(mlp, param_grid, n_jobs=-1)
+    grid_search.fit(X_train, y_train)
+    print(f'Best score: {grid_search.best_score_}')
+    print(f'Best parameters: {grid_search.best_params_}')
 
     # nn = # TODO create an instance of MLPClassifier. Do not forget to set parameters as specified in the HW2 sheet.
-
 
 
     # grid_search = # TODO create an instance of GridSearchCV from sklearn.model_selection (already imported) with
