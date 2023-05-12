@@ -116,10 +116,29 @@ def perform_grid_search(features, targets):
     :param targets:
     :return:
     """
+
+    regularization_dict = {
+        'value1': 0.0001,
+        'value2': 0.01,
+        'value3': 1
+    }
+    optimizer_dict = {
+        'adam': 'adam',
+        'sgd': 'sgd',
+        'lbfgs': 'lbfgs'
+    }
+    n_hidden_neurons_dict = {
+        'layer1': (100,),
+        'layer2': (50, 50),
+        'layer3': (100, 50, 25)
+    }
     X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=33)
-    parameters = None # TODO create a dictionary of params
+
 
     # nn = # TODO create an instance of MLPClassifier. Do not forget to set parameters as specified in the HW2 sheet.
+
+
+
     # grid_search = # TODO create an instance of GridSearchCV from sklearn.model_selection (already imported) with
     # appropriate params. Set: n_jobs=-1, this is another parameter of GridSearchCV, in order to get faster execution of the code.
 

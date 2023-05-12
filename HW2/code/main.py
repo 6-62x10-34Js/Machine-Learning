@@ -4,6 +4,8 @@ from nn_classification import reduce_dimension, train_nn, train_nn_with_regulari
     perform_grid_search
 from nn_regression import solve_regression_task
 
+
+
 def task_1_1_and_1_2():
 
     # Load the 'data/features.npy' and 'data/targets.npy' using np.load.
@@ -60,8 +62,19 @@ def task_2(): # Regression with NNs
 
     print(f'Shapes: {x_dataset.shape}, {y_targets.shape}')
 
+    # choose 3 values for the number of hidden neurons
+    n_hidden_neurons_list = [(100,), (50, 50), (100, 50, 25)]
 
-    solve_regression_task(x_dataset, y_targets)
+    # choose 3 optimizers
+    optimizer_list = ['adam', 'sgd', 'lbfgs']
+
+    # choose 3 regularization values
+    regulization_list = [0.0001, 0.01, 1]
+
+
+    # Task 2.1
+    print("----- Task 2.1 -----")
+    solve_regression_task(x_dataset, y_targets, n_hidden_neurons_list, optimizer_list, regulization_list)
 
 def main():
     #task_1_1_and_1_2()
