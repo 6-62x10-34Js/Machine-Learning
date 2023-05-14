@@ -5,24 +5,6 @@ from nn_classification import reduce_dimension, train_nn, train_nn_with_regulari
 from nn_regression import solve_regression_task
 
 # Description
-# We are tasked with solving a regression problem using Neural Networks. We are given features and targets and implement the Mean-Squared-Error (MSE) as follows:
-#
-# We use MLPRegressor frim sklearn.neural_network to solve the regression problem. We want to find the best hyperparameters for the model.
-# We used a manual search to find the best hyperparameters. We use the following hyperparameters:
-#   - number of hidden neurons
-#   - optimizer
-#   - regularization
-# With those hyperparameters we train the model and evaluate the performance on the test set.
-# We use the MSE as a metric to evaluate the performance of the model as described in XXXXX.
-# Our programm allows for a manual search of the hyperparameters by accepting lists of 3 values for each hyperparameter and then trains the model for each combination of hyperparameters.
-# When then evaluate the performance of the model on the test set and analyze the results.
-# For the number of hidden neurons we choose 3 different values: 100, 50, 25 in increasing depth of the network.
-# For the optimizer we choose 3 different values: 'adam', 'sgd', 'lbfgs'.
-# For the regularization we choose 3 different values: 0.0001, 0.01, 1.
-# We then train the model for each combination of hyperparameters and evaluate the performance on the test set.
-# We then analyze the results and choose the best hyperparameters by looking at the coefficient of determination R^2 and the MSE.
-# We build maxima, minima and mean values for the R^2 and MSE for each combination of hyperparameters and evaluate them.
-# We then choose the best hyperparameters and train the model on the whole dataset and evaluate the performance on the test set.
 
 def task_1_1_and_1_2():
 

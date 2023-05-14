@@ -30,16 +30,15 @@ def solve_regression_task(features, targets, n_hidden_neurons_list, optimizer_li
     :param regulization_list:
     :return: 
     """
-    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=33)
+    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.3, random_state=33)
 
     # (try at least 3 different numbers of neurons) with grid search and add the results to the table.
 
-    data = []
+    data_frame = pd.DataFrame(columns=['Name', 'Hidden neurons', 'Optimizer', 'Regulization', 'Train loss', 'Test loss', 'R^2'])
+
 
     for n_hidden_neurons in n_hidden_neurons_list:
-        train_losses = []
-        test_losses = []
-        r_q = []
+
         for optimizer in optimizer_list:
             for regulization in regulization_list:
                 model = MLPRegressor(hidden_layer_sizes=n_hidden_neurons, activation='logistic', solver=optimizer,
@@ -50,9 +49,7 @@ def solve_regression_task(features, targets, n_hidden_neurons_list, optimizer_li
                 train_loss = calculate_mse(expected_y, predicted_y)
                 test_loss = calculate_mse(y_train, model.predict(X_train))
                 r_squared = model.score(X_test, y_test)
-                test_losses.append(test_loss)
-                train_losses.append(train_loss)
-                r_q.append(r_squared)
+                name = str(n_hidden_neurons) + ', ' + str(optimizer) + ', ' + str(regulization)
 
                 # sns.regplot(expected_y, predicted_y, fit_reg=True, scatter_kws={"s": 10}, line_kws={"color": "red"}, ci=None, truncate=True)
                 # plt.title('Hidden neurons: ' + str(n_hidden_neurons) + ', Optimizer: ' + str(optimizer) + ', Regulization: ' + str(regulization)+ ','+'\n'+ 'R^2: ' + str(round(r_squared, 3)))
@@ -60,109 +57,140 @@ def solve_regression_task(features, targets, n_hidden_neurons_list, optimizer_li
                 # plt.ylabel('Predicted y')
                 # plt.show()
 
-                data.append([n_hidden_neurons, optimizer, regulization, train_loss, test_loss, r_q])
-    best_params, worst_params, mean_params = analyze_data(np.array(data), n_hidden_neurons_list, optimizer_list, regulization_list)
+
+                data_frame = data_frame.append({'Name': name, 'Hidden neurons': n_hidden_neurons, 'Optimizer': optimizer, 'Regulization': regulization, 'Train loss': train_loss, 'Test loss': test_loss, 'R^2': r_squared}, ignore_index=True)
+
+    analyze_data(data_frame, n_hidden_neurons_list, optimizer_list, regulization_list)
+
 
     # run the model with the best parameters and compare the results with the results obtained by using the model
     # with the default parameters (you can use the same random_state in all runs).
-    model = MLPRegressor(hidden_layer_sizes=best_params[2], activation='logistic', solver=best_params[0],
-                         alpha=best_params[1], max_iter=200, random_state=33)
-    model.fit(X_train, y_train)
-    expected_y = y_test
-    predicted_y = model.predict(X_test)
-    train_loss = calculate_mse(expected_y, predicted_y)
-    test_loss = calculate_mse(y_train, model.predict(X_train))
-    r_squared = model.score(X_test, y_test)
-    df_best_regression = pd.DataFrame({'Expected y': expected_y, 'Predicted y': predicted_y})
+    # model = MLPRegressor(hidden_layer_sizes=best_params[2], activation='logistic', solver=best_params[0],
+    #                      alpha=best_params[1], max_iter=200, random_state=33)
+    # model.fit(X_train, y_train)
+    # expected_y = y_test
+    # predicted_y = model.predict(X_test)
+    # train_loss = calculate_mse(expected_y, predicted_y)
+    # test_loss = calculate_mse(y_train, model.predict(X_train))
+    # r_squared = model.score(X_test, y_test)
+    # df_best_regression = pd.DataFrame({'Expected y': expected_y, 'Predicted y': predicted_y})
+    #
+    #
+    #
+    # model_worst = MLPRegressor(hidden_layer_sizes=worst_params[2], activation='logistic', solver=worst_params[0],
+    #                         alpha=worst_params[1], max_iter=200, random_state=33)
+    # model_worst.fit(X_train, y_train)
+    # expected_y_worst = y_test
+    # predicted_y_worst = model_worst.predict(X_test)
+    # df_worst_regression = pd.DataFrame({'Expected y': expected_y_worst, 'Predicted y': predicted_y_worst})
+    #
+    #
+    # print(median_params[0], median_params[1], median_params[2])
+    #
+    # model_mean = MLPRegressor(hidden_layer_sizes=median_params[2], activation='logistic', solver=median_params[0],
+    #                         alpha=median_params[1], max_iter=200, random_state=33)
+    # print(model_mean)
+    # model_mean.fit(X_train, y_train)
+    # expected_y_mean = y_test
+    # predicted_y_mean = model_mean.predict(X_test)
+    # df_mean_regression = pd.DataFrame({'Expected y': expected_y_mean, 'Predicted y': predicted_y_mean})
+    #
+    #
+    # df = pd.concat([df_best_regression.assign(model = 'model best'), df_worst_regression.assign(model = 'model worst'), df_mean_regression.assign(model = 'model median')])
+    #
+    # fig, ax = plt.subplots()
+    # models = ['model best', 'model worst', 'model median']
+    # for model in models:
+    #     sns.regplot(x='Expected y', y='Predicted y', data=df[df['model'] == model], fit_reg=True, line_kws={'label': 'Regression for ' + model}, ci=None, ax=ax, truncate=True)
+    # plt.title('Comparison of the best, worst and median model')
+    # plt.xlabel('Expected y')
+    # plt.ylabel('Predicted y')
+    # plt.legend()
+    # plt.show()
 
-    model_worst = MLPRegressor(hidden_layer_sizes=worst_params[2], activation='logistic', solver=worst_params[0],
-                            alpha=worst_params[1], max_iter=200, random_state=33)
-    model_worst.fit(X_train, y_train)
-    expected_y_worst = y_test
-    predicted_y_worst = model_worst.predict(X_test)
-    df_worst_regression = pd.DataFrame({'Expected y': expected_y_worst, 'Predicted y': predicted_y_worst})
-
-    model_mean = MLPRegressor(hidden_layer_sizes=mean_params[2], activation='logistic', solver=mean_params[0],
-                            alpha=mean_params[1], max_iter=200, random_state=33)
-    model_mean.fit(X_train, y_train)
-    expected_y_mean = y_test
-    predicted_y_mean = model_mean.predict(X_test)
-    df_mean_regression = pd.DataFrame({'Expected y': expected_y_mean, 'Predicted y': predicted_y_mean})
-
-    df = pd.concat([df_best_regression.assign(model = 'model best'), df_worst_regression.assign(model = 'model worst'), df_mean_regression.assign(model = 'model mean')])
-
-    fig, ax = plt.subplots()
-    models = ['model best', 'model worst', 'model mean']
-    for model in models:
-        sns.regplot(x='Expected y', y='Predicted y', data=df[df['model'] == model], fit_reg=True, line_kws={'label': 'Regression for ' + model}, ci=None, ax=ax, truncate=True)
-    plt.title('Comparison of the best, worst and mean model')
-    plt.xlabel('Expected y')
-    plt.ylabel('Predicted y')
-    plt.legend()
-    plt.show()
-
-    print('The best train loss is: ' + str(train_loss))
-    print('The best test loss is: ' + str(test_loss))
-    print('The best R^2 is: ' + str(r_squared))
 
 
     return
 
 def print_data_to_csv(data):
     """
-    :param data:
+    :param data as dataframe:
     :return:
     """
-    np.savetxt("data.csv", data, delimiter=",", fmt='%s')
+    data_frame = pd.DataFrame(data)
+    data_frame.to_csv('data.csv', index=False)
+
     return
 def analyze_data(data, n_hidden_neurons_list, optimizer_list, regulization_list):
     """
-    :param data:
+    :param data as dataframe
 
     :return:
     """
     print_data_to_csv(data)
-    train_loss = data[:, 3]
-    test_loss = data[:, 4]
-    r_squared = data[:, 5]
 
-    n_neurons = data[:, 0]
-    optimizer = data[:, 1]
-    regulization = data[:, 2]
+    # Step 1: Find the index of the best and worst r_squared within the dataframe
+    r_squared = data['R^2'].to_numpy()
+    train_loss = data['Train loss'].to_numpy()
+    test_loss = data['Test loss'].to_numpy()
+
+    optimizer = data['Optimizer'].to_numpy()
+    regulization = data['Regulization'].to_numpy()
+    n_neurons = data['Hidden neurons'].to_numpy()
+
+    # build correlation matrix
+    corr_matrix = data.corr()
+    print(corr_matrix)
+
+
 
     best_r_squared_index = np.argmax(r_squared)
+
     worst_r_squared_index = np.argmin(r_squared)
-    mean_r_squared_index = np.argsort(r_squared)[len(r_squared) // 2]
 
+    median_r2 = np.median(r_squared)
 
+    # Step 2: Find the index of the median within the array
+    median_index = np.argmax(r_squared == median_r2)
 
     best_r_squared = r_squared[best_r_squared_index]
     worst_r_squared = r_squared[worst_r_squared_index]
-    mean_r_squared = r_squared[mean_r_squared_index]
 
     # find the best train loss and test loss
     best_train_loss_index = np.argmin(train_loss)
+    best_test_loss_index = np.argmin(test_loss)
 
     # find the worst train loss and test loss
     worst_train_loss_index = np.argmax(train_loss)
+    worst_test_loss_index = np.argmax(test_loss)
 
     # find the difference between the best and worst train loss and test loss
     train_loss_difference = abs(train_loss[best_train_loss_index] - train_loss[worst_train_loss_index])
+    test_loss_difference = abs(test_loss[best_test_loss_index] - test_loss[worst_test_loss_index])
 
     # median of train loss and test loss
     median_train_loss = np.median(train_loss)
+    median_test_loss = np.median(test_loss)
 
+# make histograms of the different parameters and the train loss and test loss
+    plt.hist(train_loss, bins=10)
+    plt.title('Histogram of train loss')
+    plt.xlabel('Train loss')
 
+    plt.hist(test_loss, bins=10)
+    plt.title('Histogram of test loss')
+    plt.xlabel('Test loss')
 
     # print the results
     print('---------------------------RESULTS---------------------------------')
+    print('..........................Train Loss...............................')
+    print('Train Loss Difference: ' + str(train_loss_difference))
     print('The best train loss is: ' + str(train_loss[best_train_loss_index]))
     print('The best number of neurons is: ' + str(n_neurons[best_train_loss_index]))
     print('The best optimizer is: ' + str(optimizer[best_train_loss_index]))
     print('The best regulization is: ' + str(regulization[best_train_loss_index]))
     print(f'The best R^2 is: {best_r_squared}')
     print('....................................................................')
-
     print('The worst train loss is: ' + str(train_loss[worst_train_loss_index]))
     print('The worst number of neurons is: ' + str(n_neurons[worst_train_loss_index]))
     print('The worst optimizer is: ' + str(optimizer[worst_train_loss_index]))
@@ -172,6 +200,28 @@ def analyze_data(data, n_hidden_neurons_list, optimizer_list, regulization_list)
     print('The median train loss is: ' + str(median_train_loss))
     print('....................................................................')
     print('The difference between the best and worst train loss is: ' + str(train_loss_difference))
+    print('.........................TEST LOSS..................................')
+    print('....................................................................')
+    print('The best test loss is: ' + str(test_loss[best_test_loss_index]))
+    print('The best number of neurons is: ' + str(n_neurons[best_test_loss_index]))
+    print('The best optimizer is: ' + str(optimizer[best_test_loss_index]))
+    print('The best regulization is: ' + str(regulization[best_test_loss_index]))
+    print(f'The best R^2 is: {best_r_squared}')
+    print('....................................................................')
+
+    print('The worst test loss is: ' + str(test_loss[worst_test_loss_index]))
+    print('The worst number of neurons is: ' + str(n_neurons[worst_test_loss_index]))
+    print('The worst optimizer is: ' + str(optimizer[worst_test_loss_index]))
+    print('The worst regulization is: ' + str(regulization[worst_test_loss_index]))
+    print(f'The worst R^2 is: {worst_r_squared}')
+    print('....................................................................')
+    print('The median test loss is: ' + str(median_test_loss))
+    print('....................................................................')
+    print('The difference between the best and worst test loss is: ' + str(test_loss_difference))
+    print('....................................................................')
+    print('The median R^2 is: ' + str(median_r2))
+    print('....................................................................')
+
 
     # mean r_squared for each optimizer
     r_squared_optimizers_adam = []
@@ -286,5 +336,5 @@ def analyze_data(data, n_hidden_neurons_list, optimizer_list, regulization_list)
 
     best_parameters = [optimizer[best_train_loss_index], regulization[best_train_loss_index], n_neurons[best_train_loss_index]]
     worst_paramters = [optimizer[worst_r_squared_index], regulization[worst_r_squared_index], n_neurons[worst_r_squared_index]]
-    mean_parameters = [optimizer[mean_r_squared_index], regulization[mean_r_squared_index], n_neurons[mean_r_squared_index]]
-    return best_parameters, worst_paramters, mean_parameters
+    median_parameters = [optimizer[median_index], regulization[median_index], n_neurons[median_index]]
+    return best_parameters, worst_paramters, median_parameters
