@@ -32,8 +32,8 @@ def task_1_1_and_1_2():
     # PCA
     # Task 1.1.1
     print("----- Task 1.1.1 -----")
-    n_components = 1 # Changed in reduce_dimension
-    X_reduced = reduce_dimension(features, n_components)
+    n_components = 1 # Changed in reduce_dimension according to the data
+    X_reduced = reduce_dimension(features)
     print(X_reduced.shape)
 
     # Task 1.1.2
@@ -44,10 +44,10 @@ def task_1_1_and_1_2():
     #
     # # Task 1.1.3
     # print("----- Task 1.1.3 -----")
-    res_dict_2 = train_nn_with_regularization(X_reduced, targets, n_hidden_neurons)
+    #res_dict_2 = train_nn_with_regularization(X_reduced, targets)
 
-    compare_train_methods(res_dict_1, res_dict_2)
-    plot_result_dicts(res_dict_1, res_dict_2)
+    #compare_train_methods(res_dict_1, res_dict_2)
+    #plot_result_dicts(res_dict_1, res_dict_2)
     #
     # # Task 1.1.4
     # print("----- Task 1.1.4 -----")
@@ -55,7 +55,7 @@ def task_1_1_and_1_2():
 
     # Task 1.2
     print("----- Task 1.2 -----")
-    #perform_grid_search(X_reduced, targets)
+    perform_grid_search(X_reduced, targets)
 
 
 def task_2(): # Regression with NNs
@@ -64,11 +64,14 @@ def task_2(): # Regression with NNs
     x_dataset = np.load('data/x_datapoints.npy')
     y_targets = np.load('data/y_datapoints.npy')
 
-
+    #proof continuous mapping of x to y
     print(f'Shapes: {x_dataset.shape}, {y_targets.shape}')
 
     # choose 3 values for the number of hidden neurons
-    n_hidden_neurons_list = [(100,), (50, 50), (100, 50, 25)]
+    n_hidden_neurons_list = [(300,), (300, 50)]
+
+    # choose 3 activation functions
+    activation_list = ['relu', 'tanh', 'logistic']
 
     # choose 3 optimizers
     optimizer_list = ['adam', 'sgd', 'lbfgs']
@@ -76,14 +79,15 @@ def task_2(): # Regression with NNs
     # choose 3 regularization values
     regulization_list = [0.0001, 0.01, 1]
 
+    stopping_list = [True, False]
 
     # Task 2.1
     print("----- Task 2.1 -----")
-    solve_regression_task(x_dataset, y_targets, n_hidden_neurons_list, optimizer_list, regulization_list)
+    solve_regression_task(x_dataset, y_targets, n_hidden_neurons_list, optimizer_list, regulization_list, activation_list, stopping_list)
 
 def main():
-    #task_1_1_and_1_2()
-    task_2()
+    task_1_1_and_1_2()
+    #task_2()
 
 
 if __name__ == '__main__':

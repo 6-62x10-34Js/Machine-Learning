@@ -1,15 +1,16 @@
 import numpy as np
+import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix, classification_report
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, cross_val_score
 import warnings
 warnings.filterwarnings("ignore")
 import matplotlib.pyplot as plt
 
 
-def reduce_dimension(features, n_components):
+def reduce_dimension(features):
     """
     :param features: Data to reduce the dimensionality. Shape: (n_samples, n_features)
     :param n_components: Number of principal components
@@ -22,11 +23,20 @@ def reduce_dimension(features, n_components):
 
     # fit the model with features, and apply the transformation on the features
     pca.fit(features)
-    cum_var = np.cumsum(pca.explained_variance_ratio_)
-    n_components = np.argmax(cum_var >= 0.95) + 1
+
+    # use pca inbuilt function to get the explained variance
+    explained_variance = pca.explained_variance_ratio_
+
+    #calculate the cumulative sum of the explained variance
+    cum_sum = np.cumsum(explained_variance)
+
+    # find the number of components that explain 95% of the variance
+    n_components = np.argmax(cum_sum >= 0.95) + 1
+
+    print(f'Number of components: {n_components}')
 
     # apply the transformation on the features
-    X_reduced = pca.transform(features)[:,:n_components]
+    X_reduced = pca.transform(features)[:, :n_components]
 
     # print the explained variance
     print(f'Explained variance: {pca.explained_variance_ratio_}')
@@ -48,25 +58,27 @@ def train_nn(features, targets, n_hidden_neurons):
     # TODO create an instance of MLPClassifier from sklearn.neural_network (already imported).
     # Set the parameters (some of them are specified in the HW2 sheet).
     # For each number of neurons in n_hidden_neurons, train the model and print the accuracy on the training and test set.
-    param_dict = {'hidden_layer_sizes': [n_hidden_neurons], 'alpha': [0.0001, 0.01], 'early_stopping': [True, False]}
-    result_dict = {}
+
+    param_dict = {'early_stopping': [True, False], 'hidden_layer_sizes': [(2,), (10,), (100,), (200,)]}
+    result_dict = pd.DataFrame(columns=['early_stopping', 'n_hid', 'train_acc', 'test_acc', 'loss'])
     for n_hid in param_dict['hidden_layer_sizes']:
-    #try all combinations of parameters
-        for alpha in param_dict['alpha']:
-            for early_stopping in param_dict['early_stopping']:
-                model = MLPClassifier(hidden_layer_sizes=n_hid, alpha=alpha, early_stopping=early_stopping, random_state=1, max_iter= 500)
-                model.fit(X_train, y_train)
-                train_acc = model.score(X_train, y_train)
-                test_acc = model.score(X_test, y_test)
-                loss = model.loss_
 
-                # add results to dictionary
-                result_dict[n_hid][alpha][early_stopping] = {'train_acc': train_acc, 'test_acc': test_acc, 'loss': loss}
+        for early_stopping in param_dict['early_stopping']:
+            model = MLPClassifier(hidden_layer_sizes=n_hid, early_stopping=early_stopping, random_state=1, max_iter= 500)
+            model.fit(X_train, y_train)
+            train_acc = model.score(X_train, y_train)
+            test_acc = model.score(X_test, y_test)
+            loss = model.loss_
 
-                print(f'Number of neurons: {n_hid}')
-                print(f'Train accuracy: {train_acc:.4f}. Test accuracy: {test_acc:.4f}')
-                print(f'Loss: {loss:.4f}')
-                print('------------------')
+            # add results to dictionary
+            result_dict = result_dict.append({ 'early_stopping': early_stopping, 'n_hid': n_hid, 'train_acc': train_acc, 'test_acc': test_acc, 'loss': loss}, ignore_index=True)
+
+            print(f'Number of neurons: {n_hid}')
+            print(f'Train accuracy: {train_acc:.4f}. Test accuracy: {test_acc:.4f}')
+            print(f'Loss: {loss:.4f}')
+            print('------------------')
+
+    result_dict.to_csv('result_dict.csv')
     return result_dict
 
 def plot_result_dicts(result_dict1, result_dict2):
@@ -135,8 +147,9 @@ def compare_train_methods(result_dict1, result_dict2):
         for early_stopping, result1 in alpha_dict1.items():
             result2 = alpha_dict2.get(early_stopping, {})
 
-            train_acc1 = result1['train_acc']
-            test_acc1 = result1['test_acc']
+            train_acc1 = result1.get('train_acc', None)
+            test_acc1 = result1.get('test_acc', None)
+
 
             train_acc2 = result2.get('train_acc', None)
             test_acc2 = result2.get('test_acc', None)
@@ -149,7 +162,7 @@ def compare_train_methods(result_dict1, result_dict2):
             print("------------------")
 
 
-def train_nn_with_regularization(features, targets, n_hidden_neurons):
+def train_nn_with_regularization(features, targets):
     """
     Train MLPClassifier using regularization.
 
@@ -160,31 +173,29 @@ def train_nn_with_regularization(features, targets, n_hidden_neurons):
     X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=33)
 
     # Copy your code from train_nn, but experiment now with regularization (alpha, early_stopping).
-    param_dict = {'alpha': [0.0001, 0.1], 'early_stopping': [True, False], 'hidden_layer_sizes': [n_hidden_neurons]}
-    result_dict = {}
-    for n_hid in n_hidden_neurons:
+    param_dict = {'early_stopping': [True, False], 'hidden_layer_sizes': [(2,), (10,), (100,), (200,)]}
+    result_dict = pd.DataFrame(columns=['early_stopping', 'n_hid', 'train_acc', 'test_acc', 'loss'])
+    for n_hid in param_dict['hidden_layer_sizes']:
         #try all combinations of parameters
-        for alpha in param_dict['alpha']:
-            for early_stopping in param_dict['early_stopping']:
-                model = MLPClassifier(hidden_layer_sizes=(n_hid,), random_state=1, max_iter=500, solver= 'adam', alpha=alpha, early_stopping=early_stopping)
-                model.fit(X_train, y_train)
-                train_acc = model.score(X_train, y_train)
-                test_acc = model.score(X_test, y_test)
-                loss = model.loss_
-                print(f'Number of neurons: {n_hid}')
-                if alpha == 0.0001:
-                    alpha = 'default'
-                if early_stopping == False:
-                    early_stopping = 'default'
+        for early_stopping in param_dict['early_stopping']:
+            model = MLPClassifier(hidden_layer_sizes=(n_hid,), random_state=1, max_iter=500, solver= 'adam', early_stopping=early_stopping)
+            model.fit(X_train, y_train)
+            train_acc = model.score(X_train, y_train)
+            test_acc = model.score(X_test, y_test)
+            loss = model.loss_
+            print(f'Number of neurons: {n_hid}')
+            if early_stopping == False:
+                early_stopping = 'default'
 
-                # add results to dictionary
-                result_dict[alpha][early_stopping][n_hid] = {'train_acc': train_acc, 'test_acc': test_acc, 'loss': loss}
+            # add results to dictionary
+            result_dict = result_dict.append({'early_stopping': early_stopping, 'n_hid': n_hid, 'train_acc': train_acc, 'test_acc': test_acc, 'loss': loss}, ignore_index=True)
+            print(f'Early stopping: {early_stopping}')
+            print(f'Train accuracy: {train_acc:.4f}. Test accuracy: {test_acc:.4f}')
+            print(f'Loss: {loss:.4f}')
+            print('------------------')
 
-                print(f'Alpha: {alpha}')
-                print(f'Early stopping: {early_stopping}')
-                print(f'Train accuracy: {train_acc:.4f}. Test accuracy: {test_acc:.4f}')
-                print(f'Loss: {loss:.4f}')
-                print('------------------')
+    #resultdict saved as csv
+    result_dict.to_csv('result_dict.csv')
 
     # print the results
     return result_dict
@@ -250,35 +261,43 @@ def perform_grid_search(features, targets):
     }
     optimizer_dict = {
         'adam': 'adam',
-        'sgd': 'sgd',
         'lbfgs': 'lbfgs'
     }
     n_hidden_neurons_dict = {
         'layer1': (100,),
-        'layer2': (50, 50),
-        'layer3': (100, 50, 25)
+        'layer2': (200,)
+    }
+    activations_dict = {
+        'relu': 'relu',
+        'logistic': 'logistic'
     }
 
     param_grid = {
         'hidden_layer_sizes': list(n_hidden_neurons_dict.values()),
-        'activation': ['relu'],
+        'activation': list(activations_dict.values()),
         'solver': list(optimizer_dict.values()),
-        'alpha': list(regularization_dict.values()),
-        'random_state': [123]
+        'alpha': list(regularization_dict.values())
     }
-    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=param_grid['random_state'][0])
-    mlp = MLPClassifier(max_iter=1000)
+    param_values = list(param_grid.values())
+    num_combinations = np.prod([len(values) for values in param_values])
+    print(f"Number of combinations that will be checked: {num_combinations}")
+
+    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=1)
+    mlp = MLPClassifier(max_iter=100, learning_rate_init = 0.01, random_state=1)
     grid_search = GridSearchCV(mlp, param_grid, n_jobs=-1)
     grid_search.fit(X_train, y_train)
+
+    accuracy = cross_val_score(grid_search, X_train, y_train, cv=5)
+    print('------------------Overall results------------------')
+    print(f'Accuracy: {accuracy.mean():.4f} +/- {accuracy.std():.4f}')
+    print(f'Best Cross Validation Score: {np.max(accuracy):.4f}')
     print(f'Best score: {grid_search.best_score_}')
     print(f'Best parameters: {grid_search.best_params_}')
 
-    # nn = # TODO create an instance of MLPClassifier. Do not forget to set parameters as specified in the HW2 sheet.
+    #get test accuracy for best model
+    best_model = grid_search.best_estimator_
+    test_acc = best_model.score(X_test, y_test)
+    print(f'Test accuracy of the best model: {test_acc:.4f}')
 
 
-    # grid_search = # TODO create an instance of GridSearchCV from sklearn.model_selection (already imported) with
-    # appropriate params. Set: n_jobs=-1, this is another parameter of GridSearchCV, in order to get faster execution of the code.
 
-    # TODO call fit on the train data
-    # TODO print the best score
-    # TODO print the best parameters found by grid_search
