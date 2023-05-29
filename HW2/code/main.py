@@ -1,7 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from nn_classification import reduce_dimension, train_nn, train_nn_with_regularization, train_nn_with_different_seeds, \
-    perform_grid_search, compare_train_methods, plot_result_dicts
+    perform_grid_search
 from nn_regression import solve_regression_task
 
 # Description
@@ -38,20 +37,18 @@ def task_1_1_and_1_2():
 
     # Task 1.1.2
     print("----- Task 1.1.2 -----")
-    n_hidden_neurons = [2, 10, 100, 200]
 
-    res_dict_1 = train_nn(X_reduced, targets, n_hidden_neurons)
+
+    train_nn(X_reduced, targets)
     #
     # # Task 1.1.3
-    # print("----- Task 1.1.3 -----")
-    #res_dict_2 = train_nn_with_regularization(X_reduced, targets)
+    print("----- Task 1.1.3 -----")
+    train_nn_with_regularization(X_reduced, targets)
 
-    #compare_train_methods(res_dict_1, res_dict_2)
-    #plot_result_dicts(res_dict_1, res_dict_2)
-    #
+
     # # Task 1.1.4
-    # print("----- Task 1.1.4 -----")
-    # train_nn_with_different_seeds(X_reduced, targets)
+    print("----- Task 1.1.4 -----")
+    train_nn_with_different_seeds(X_reduced, targets)
 
     # Task 1.2
     print("----- Task 1.2 -----")
@@ -87,7 +84,7 @@ def task_2(): # Regression with NNs
 
 def main():
     task_1_1_and_1_2()
-    #task_2()
+    task_2()
 
 
 if __name__ == '__main__':

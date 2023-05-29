@@ -1,8 +1,6 @@
-import numpy as np
-from sklearn.metrics import mean_squared_error, confusion_matrix
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
-from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -17,7 +15,7 @@ def calculate_mse(targets, predictions):
     :return:
     """
     mse = mean_squared_error(targets, predictions)
-    #mse = ((targets - predictions) ** 2).mean(axis=0)
+    mse = ((targets - predictions) ** 2).mean(axis=0)
 
     return mse
 
@@ -37,11 +35,6 @@ def solve_regression_task(features, targets, n_hidden_neurons_list, optimizer_li
 
     data_frame = pd.DataFrame(
         columns=['Name', 'Hidden neurons', 'Optimizer', 'Regulization', 'Activation', 'Early Stopping', 'Train loss', 'Test loss', 'R^2'])
-    size_of_input_layer = X_train.shape[0]
-    print(size_of_input_layer)
-    size_of_output_layer = y_train.shape
-    print(size_of_output_layer)
-    # n_h = 2 / 3 * 700 + 700
 
     for activation in activation_list:
         for n_hidden_neurons in n_hidden_neurons_list:
@@ -107,3 +100,8 @@ def print_data_to_csv(data):
     data_frame.to_csv('data.csv', index=False)
 
     return
+
+
+
+
+
