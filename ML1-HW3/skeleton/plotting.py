@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
+# use tkgg
+plt.switch_backend('TkAgg')
+
 
 def plot_decision_boundary(X_train, t_train, k, score, label, classifier):
     """ Plots the decision boundary for a given training set and a given k.
@@ -36,8 +39,8 @@ def plot_decision_boundary(X_train, t_train, k, score, label, classifier):
     plt.ylim(yy.min(), yy.max())
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
-    plt.title(f'{label} (score: {score})')
-    #plt.savefig(f'{label}_{score}.png')
+    plt.title(f'{label} for k={k} (score: {score:.2f})')
+    plt.savefig(f'2.3_{label}_{score}.png')
     plt.show()
 
 
@@ -47,6 +50,7 @@ def plot_dataset(X_train, X_test, y_train, y_test):
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     plt.title('Dataset')
+
     plt.show()
 
 def plot_training_test_over_k(k, training_scores, test_scores):
@@ -56,4 +60,5 @@ def plot_training_test_over_k(k, training_scores, test_scores):
     plt.ylabel('Score')
     plt.title('Training and Test Scores over k')
     plt.legend()
+    plt.savefig(f'training_test_over_k_1.3.png')
     plt.show()

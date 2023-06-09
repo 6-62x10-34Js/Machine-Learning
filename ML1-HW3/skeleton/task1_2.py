@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, cross_val_score
 
 import plotting
 from datasets import get_toy_dataset
@@ -15,15 +15,12 @@ if __name__ == '__main__':
 
     clf = GridSearchCV(knn, param_grid={'k': np.arange(1, 100)}, return_train_score=True)
     clf.fit(X_train, y_train)
-    test_score = clf.score(X_test, y_test)
-    print(f"Test Score: {test_score}")
+    test_score = cross_val_score(clf, X_train, y_train, cv=5)
+    best_params = clf.best_params_
     print(f"Dataset {idx}: {clf.best_params_}")
-
     plt.figure()
-    plotting.plot_decision_boundary(X_train, y_train, idx, test_score, 'Task 1.2', classifier=clf)
-    plotting.plot_dataset(X_train, X_test, y_train, y_test)
+    plotting.plot_decision_boundary(X_train, y_train, best_params['k'], clf.best_score_, 'Task 1.2', classifier=clf)
     # TODO you should use the plt.savefig(...) function to store your plots before calling plt.show()
     plotting.plot_training_test_over_k(clf.cv_results_['param_k'], clf.cv_results_['mean_train_score'], clf.cv_results_['mean_test_score'])
 
-    plt.show()
 
